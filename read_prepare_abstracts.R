@@ -4,6 +4,7 @@ library(ggplot2)
 hbr <- read.csv('./data/HBR Citations_correct_abstracts.csv', strip.white=TRUE, as.is=TRUE)
 
 
+########################################### 
 # Starter code from: 
 # https://www.kaggle.com/c/harvard-business-review-vision-statement-prospect/forums/t/2396/very-first-steps-in-r
 
@@ -31,6 +32,8 @@ hbr$dm <- NULL
 hbr$y <- NULL
 hbr$dmY <-NULL
 hbr$SYSTEM..PUB.DATE <- NULL
+
+###########################################
 
 # compute article frequency grouped by year
 
