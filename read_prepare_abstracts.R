@@ -1,11 +1,11 @@
-
+rm(list=ls())
 
 library(ggplot2)
 library(tm)
 library(lsa)
 library(ExPosition)
 library(reshape2)
-
+library(dplyr)
 
 hbr <- read.csv('./data/HBR Citations_correct_abstracts.csv', strip.white=TRUE, as.is=TRUE)
 
@@ -54,6 +54,15 @@ hbr <- hbr[-which(format(hbr$date, "%Y") %in% c(1922,2012)),]
 
 # Group records from before 1975 into 5-year units ?
 
+# Text-mining.. 
+
+# we will need author names so we delete them from abstracts
+# Author_names <- c(hbr$AUTHOR.1.LAST.NAME, hbr$AUTHOR.2.LAST.NAME,hbr$AUTHOR.3.LAST.NAME)
+# Author_names<-Author_names[-which(Author_names=="")]
+# Author_names<-tolower(Author_names)
+# Author_names<-gsub('[^[:alnum:]///]', '', Author_names)
+# Author_names<-unique(Author_names)
+
 docs = Corpus(VectorSource(hbr$abstract))
 
 tospace <- (function(x, pattern) gsub(pattern, " ", x))
@@ -65,12 +74,14 @@ docs = tm_map(docs, content_transformer(removeNumbers))                 # remove
 docs = tm_map(docs, content_transformer(tospace), "[^[:alnum:]///' ]")  # convert all non-alphabets to spaces
 docs = tm_map(docs, content_transformer(tospace), "[']")                # convert ' to spaces
 docs = tm_map(docs, content_transformer(removeWords), stopwords_en)             # remove junk words
-
+to_delete_words <- c("article","discussed", "author")
+docs = tm_map(docs, content_transformer(removeWords), to_delete_words)             # remove junk words
+# docs = tm_map(docs, content_transformer(removeWords), Author_names)             # remove author names from abstrac
 #docs = tm_map(docs, stemDocument)                             # stem document
 docs = tm_map(docs, content_transformer(stripWhitespace))     # stripe white spaces
 
 dtm <- DocumentTermMatrix(docs) # or TermDocumentMatrix
-dtm <- removeSparseTerms(dtm,0.9987) # remove words that only appear in *10900*(1-0.9987)* studies. i.e. 15 studies
+dtm <- removeSparseTerms(dtm,0.9999) # 
 
 dtm.mat <- as.matrix(dtm)
 
@@ -87,29 +98,63 @@ year_nominal <- makeNominalData(data.frame(as.factor(format(hbr$date, '%Y'))))
 colnames(year_nominal) <- substr(colnames(year_nominal), 35,40)
 
 # Now we have:
-# dtm           ==> 12697 (articles)  x 4673  (words)
+# dtm           ==> 12697 (articles)  x 18376  (words)
 # year_nominal  ==> 12697 (articles)  x 89    (years)
 
 # we want: 
 # word_year     ==> 4673  (words) x 89 (years) # gives counts of each word per year!
 
-word_year <- t(dtm.mat) %*% year_nominal
+word_year <- t(dtm.mat) %*% year_nominal 
 
-head(word_year)
+# head(word_year)
 
 yrs.sorted <- order(as.numeric(colnames(word_year)))
 word_year <- word_year[,yrs.sorted]
-word_year[word_year==0] <- NA       # we convert all zeros to NAs 
+#word_year[word_year==0] <- NA       # we convert all zeros to NAs 
                                     # so that we get rid of multiple 
                                     # "zero" records in next step
 
+# popular word per year
+
+pop.cnt <- apply(word_year, 2, function(x) {return( max(x) )})                                   # return maximum "count"
+pop.wrd <- as.character(apply(word_year, 2, function(x) {return( names(which(max(x)==x))[1] )})) # return word
+
+pop_word_year <- data.frame(year=colnames(word_year), word=pop.wrd,count=pop.cnt)
+
+
 # using reshape2::melt() function to convert from matrix to long format
-word_year.long <- melt(word_year, value.name = "count", variable.name = "year", na.rm = TRUE)
-names(word_year.long) <- c("terms", "year", "count")
+# word_year.long <- melt(word_year, 
+#                        value.name = "count", 
+#                        variable.name = "year", 
+#                        na.rm = TRUE)
+# names(word_year.long) <- c("terms", "year", "count")
+# 
+# head(word_year.long) # nice format; but too many records!
 
-head(word_year.long)
+res.ca <- epCA(t(word_year), graphs = F)
 
-#
+# First, we give a wight to each word according to its "temporal" importance
+weight <- data.frame(word = row.names(res.ca$ExPosition.Data$fj) , 
+                     wt   = as.vector(res.ca$ExPosition.Data$dj))
+top25 <- weight$wt > quantile(weight$wt, .5)
+
+# then visualize those "selected" ones..
+
+df1<-
+  data.frame(res.ca$ExPosition.Data$fi) %>% 
+  select(num_range("X", 1:4)) %>%
+  mutate(year= row.names(res.ca$ExPosition.Data$fi)) #%>%
+#  filter(year < 1950)
+df2<-
+  data.frame(res.ca$ExPosition.Data$fj[top25,]) %>% 
+  select(num_range("X", 1:4)) %>%
+  mutate(word= row.names(res.ca$ExPosition.Data$fj)[top25])
+
+g1<-ggplot(data=df1, aes(x=X1, y=X2, label=year)) + geom_text(color="red") + geom_path()
+g2<-g1+geom_text(data=df2, aes(x=X1, y=X2, label=word), check_overlap = T, size=5)
+g2<- g2 + labs(title="Correspondence Analysis of HBR corpus over 90 years",
+               x="Component 1", y="Component 2") + theme_void()
+g2
 
 
 
