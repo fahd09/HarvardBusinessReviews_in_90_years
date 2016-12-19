@@ -184,3 +184,6 @@ g2
 
 ggsave('./term_map.png', g2)
 
+# Nice map
+
+
