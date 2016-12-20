@@ -49,19 +49,10 @@ article_freq <- aggregate(hbr$ARTICLE.TITLE, by = list(year = as.factor(format(h
 ggplot(data=article_freq, aes(x=year, y=x)) + geom_point()
 
 # drop records of 1st and last year ?
-
 # hbr <- hbr[-which(format(hbr$date, "%Y") %in% c(1922,2012)),]
-
 # Group records from before 1975 into 5-year units ?
 
 # Text-mining.. 
-
-# we will need author names so we delete them from abstracts
-# Author_names <- c(hbr$AUTHOR.1.LAST.NAME, hbr$AUTHOR.2.LAST.NAME,hbr$AUTHOR.3.LAST.NAME)
-# Author_names<-Author_names[-which(Author_names=="")]
-# Author_names<-tolower(Author_names)
-# Author_names<-gsub('[^[:alnum:]///]', '', Author_names)
-# Author_names<-unique(Author_names)
 
 docs = Corpus(VectorSource(hbr$abstract))
 
@@ -72,18 +63,16 @@ docs = tm_map(docs, content_transformer(tospace), "[/\\]")              # conver
 docs = tm_map(docs, content_transformer(removeNumbers))                 # remove numbers
 docs = tm_map(docs, content_transformer(tospace), "[^[:alnum:]///' ]")  # convert all non-alphabets to spaces
 docs = tm_map(docs, content_transformer(tospace), "[']")                # convert ' to spaces
-docs = tm_map(docs, content_transformer(removeWords), stopwords('en'))  # stopwords_en)             # remove junk words
 
-# should we delete those words? planning government international
-to_delete_words <- strsplit('furthermore post september women january march june july november december october april august february hbr accounting period planning government international discussed companies company author authors article articles experience businessmen describe describes examine examines method details analysts analyst methods noted mentioned journal harvard regarding refers job excerpt benefits relations plans focuses act related pertaining recent able form techniques hard little basic michael types specific day comments manage manages manager managers means makes provides argue argues instead pay pays david current professor rate rates ability look looks common self robert john provide level line example a about above across after again against all almost alone along already also although always among an and another any anybody anyone anything anywhere are area areas around as ask asked asking asks at away b back backed backing backs be became because become becomes been before began behind being beings best better between big both but by c came can cannot case cases certain certainly clear clearly come could d did differ different differently do does done down downed downing downs during e each early either end ended ending ends enough even evenly ever every everybody everyone everything everywhere f face faces far felt few find finds first for four from full fully further furthered furthering furthers g gave general generally get gets give given gives go going goods got group grouped grouping groups h had has have having he her here herself high higher highest him himself his how however i if in interest interests into is it its itself j just k keep keeps kind knew know known knows l large largely last later latest least less let lets like likely long longer longest m made make making man many may me member members men might more most mostly mr mrs much must my myself n necessary need needed needing needs never new newer newest next no nobody non noone not nothing now nowhere number numbers o of off often old older oldest on once one only open opened opening opens or order ordered ordering orders other others our out over p part parted parting parts per perhaps place places point pointed pointing points possible present presented presenting presents problem problems put puts q quite r rather really right room rooms s said same saw say says second seconds see seem seemed seeming seems sees several shall she should show showed showing shows side sides since small smaller smallest so some somebody someone something somewhere state states still such sure t take taken than that the their them then there therefore these they thing things think thinks this those though thought thoughts three through thus to today together too took toward turn turned turning turns two u under until up upon us use used uses v very w want wanted wanting wants was way ways we well wells went were what when where whether which while who whole whose why will with within without work worked working works would x y year years yet you your yours z rather number part don say suggests however among reports ways small get found issues says just articles made large review needs better used become different top like business can management new issue managers will presented one editor discusses response letter also work people corporate market executives many authors may time product states employees make industry economic must world united research include organization well presents study marketing customers executive two use products value change need system performance sales way financial problems first process years making costs book public cost growth customer several three long often high approach case important including best help leadership topics based reviews control capital social even markets good service systems problem take american much price', ' ')[[1]] # add more words
+to_delete_words <- strsplit('models plan federal development investment organizations program books own furthermore post september women january march june july november december october april august february hbr accounting period planning government international discussed companies company author authors article articles experience businessmen describe describes examine examines method details analysts analyst methods noted mentioned journal harvard regarding refers job excerpt benefits relations plans focuses act related pertaining recent able form techniques hard little basic michael types specific day comments manage manages manager managers means makes provides argue argues instead pay pays david current professor rate rates ability look looks common self robert john provide level line example a about above across after again against all almost alone along already also although always among an and another any anybody anyone anything anywhere are area areas around as ask asked asking asks at away b back backed backing backs be became because become becomes been before began behind being beings best better between big both but by c came can cannot case cases certain certainly clear clearly come could d did differ different differently do does done down downed downing downs during e each early either end ended ending ends enough even evenly ever every everybody everyone everything everywhere f face faces far felt few find finds first for four from full fully further furthered furthering furthers g gave general generally get gets give given gives go going goods got group grouped grouping groups h had has have having he her here herself high higher highest him himself his how however i if in interest interests into is it its itself j just k keep keeps kind knew know known knows l large largely last later latest least less let lets like likely long longer longest m made make making man many may me member members men might more most mostly mr mrs much must my myself n necessary need needed needing needs never new newer newest next no nobody non noone not nothing now nowhere number numbers o of off often old older oldest on once one only open opened opening opens or order ordered ordering orders other others our out over p part parted parting parts per perhaps place places point pointed pointing points possible present presented presenting presents problem problems put puts q quite r rather really right room rooms s said same saw say says second seconds see seem seemed seeming seems sees several shall she should show showed showing shows side sides since small smaller smallest so some somebody someone something somewhere state states still such sure t take taken than that the their them then there therefore these they thing things think thinks this those though thought thoughts three through thus to today together too took toward turn turned turning turns two u under until up upon us use used uses v very w want wanted wanting wants was way ways we well wells went were what when where whether which while who whole whose why will with within without work worked working works would x y year years yet you your yours z rather number part don say suggests however among reports ways small get found issues says just articles made large review needs better used become different top like business can management new issue managers will presented one editor discusses response letter also work people corporate market executives many authors may time product states employees make industry economic must world united research include organization well presents study marketing customers executive two use products value change need system performance sales way financial problems first process years making costs book public cost growth customer several three long often high approach case important including best help leadership topics based reviews control capital social even markets good service systems problem take american much price', ' ')[[1]] # add more words
 docs = tm_map(docs, content_transformer(removeWords), to_delete_words)             # remove junk words
-#docs = tm_map(docs, stemDocument)                             # stem document
 docs = tm_map(docs, content_transformer(stripWhitespace))     # stripe white spaces
 
 dtm <- DocumentTermMatrix(docs)     
-dtm <- removeSparseTerms(dtm,0.995) # get rid of very infrequent words
-                                    # 12699 - 12699 * .995 ~ 64 words
-                                    # so words with < 64 freq will be removed
+dtm <- removeSparseTerms(dtm,0.995) 
+# get rid of very infrequent words
+# 12699 - 12699 * .995 ~ 64 words
+# so words with < 64 freq will be removed
 
 dtm.mat <- as.matrix(dtm)
 
@@ -133,8 +122,8 @@ word_year <- t(dtm.mat) %*% year_nominal
 yrs.sorted <- order(as.numeric(colnames(word_year)))
 word_year <- word_year[,yrs.sorted]
 #word_year[word_year==0] <- NA       # we convert all zeros to NAs 
-                                    # so that we get rid of multiple 
-                                    # "zero" records in next step
+# so that we get rid of multiple 
+# "zero" records in next step
 
 # popular word per year
 
@@ -170,30 +159,37 @@ df1<-
   mutate(year= row.names(res.ca$ExPosition.Data$fi)) #%>%
 #  filter(year < 1950)
 df2<-
-  data.frame(res.ca$ExPosition.Data$fj[top25,]) %>% 
+  data.frame(res.ca$ExPosition.Data$fj) %>% 
   select(num_range("X", 1:4)) %>%
-  mutate(word= row.names(res.ca$ExPosition.Data$fj)[top25]) %>%
-  mutate(wt  = 3+as.vector(res.ca$ExPosition.Data$dj)[top25])
+  mutate(word= row.names(res.ca$ExPosition.Data$fj)) %>%
+  mutate(wt  = as.vector(res.ca$ExPosition.Data$dj))
 
 g1<-ggplot(data=df1, aes(x=X1, y=X2, label=year)) + geom_text(color="red") + geom_path()
-g2<-g1+geom_text(data=df2, aes(x=X1, y=X2, label=word, size=wt), check_overlap = T)
-g2<- g2 + labs(title="Correspondence Analysis of HBR corpus over 90 years",
+g2<-g1+geom_text(data=df2, aes(x=X1, y=X2, label=word), check_overlap = T)
+g3<- g2 + labs(title="Correspondence Analysis of HBR corpus over 90 years",
                x="Component 1", y="Component 2") + theme_void() + theme(legend.position="none")
-g2
+g3
 
-clus<-hclust(dist(res.ca$ExPosition.Data$fj[top25,1:5]), method = "ward.D2")
-memb <- cutree(clus, k = 6)
+clus<-hclust(dist(res.ca$ExPosition.Data$fj[top25,1:2]), method = "ward.D2")
+memb <- factor(cutree(clus, k = 6))
 
-g1<-ggplot(data=df1, aes(x=X1, y=X2, label=year)) +  geom_text(size=2, check_overlap = T)# + geom_path()
-g2<-g1+geom_text(data=df2, aes(x=X1, y=X2, label=word, size=2+wt), check_overlap = T, color=memb)
-g2<- g1 + labs(title="Term map of HBR corpus over 90 years",
-               x="Component 1", y="Component 2") + theme_void() + theme(legend.position="none")
-g2
+g1<-ggplot(data=df1, aes(x=X1, y=X2, label=year)) + geom_path()
+g2<-g1+geom_text(data=df2, aes(x=X1, y=X2, label=word, size=2, color=memb), check_overlap = T)
+g3<- g2 + labs(title="Vocabolary Map of Harvard Business Revew Corpus\nfrom 1922 to 2012",
+               x="Component 1", y="Component 2") + theme_void() + 
+  theme(legend.position="none") + scale_color_brewer(palette = "Set1")
+g3 
 
-# ggplot(data=df2, aes(x=X1, y=X2, label=word, size=4+wt, color=factor(memb))) +  geom_text(check_overlap = F)# + geom_path()
+#ggsave('./term_map_clean.png', g3)
 
-ggsave('./term_map.png', g2)
+g1<-ggplot(data=df1, aes(x=X1, y=X2, label=year)) + geom_path()
+g2<-g1+geom_text(data=df2, aes(x=X1, y=X2, label=word, size=2+wt, color=memb), check_overlap = F)
+g3<- g2 + labs(title="Vocabolary Map of Harvard Business Revew Corpus\nfrom 1922 to 2012",
+               x="Component 1", y="Component 2") + theme_void() + 
+  theme(legend.position="none") + scale_color_brewer(palette = "Set1")
+g3 
+
+#ggsave('./term_map_full.png', g3)
+
 
 # Nice map
-
-
