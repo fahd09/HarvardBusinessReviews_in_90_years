@@ -200,7 +200,8 @@ df2<-
   select(num_range("X", 1:4)) %>%
   mutate(word= row.names(res.ca$ExPosition.Data$fj)) %>%
   mutate(wt  = as.vector(res.ca$ExPosition.Data$dj),
-         top = factor(ifelse(wt>quantile(wt,.7), 1, 0)))
+         top = factor(ifelse(wt>quantile(wt,.95), 1, 0))) %>%
+  filter(top ==1)
 
 # df2$marker <- ifelse(df2$word %in% c("newspapers", "amazon", "morgan", "war ii", 
 #                                      "depression era","facebook","innovation",
@@ -237,13 +238,13 @@ g1<-ggplot(data=df1, aes(x=X1, y=X2, label=year)) + #geom_path() +
     fill = "white", fontface = 'bold', color = 'black',
     box.padding = unit(0.05, "lines")
   )
-g2<-g1+geom_text(data=df2, aes(x=X1, y=X2, label=word, color=memb, size=2), check_overlap = T)
+g2<-g1+geom_text(data=df2, aes(x=X1, y=X2, label=word, color=memb, size=2), check_overlap = F)
 g3<- g2 + labs(title="Vocabolary Map of Harvard Business Revew Corpus\nfrom 1922 to 2012",
                x="Component 1", y="Component 2") + theme_void() + 
   theme(legend.position="none") + scale_color_brewer(palette = "Set1")
 g3 
 
-ggsave('./term_map_clean.png', g3)
+ggsave('./term_map_clean2.png', g3)
 #ggsave('./term_map_full.png', g3)
 
 
