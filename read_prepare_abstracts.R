@@ -237,7 +237,7 @@ g1<-ggplot(data=df1, aes(x=X1, y=X2, label=year)) + #geom_path() +
     fill = "white", fontface = 'bold', color = 'black',
     box.padding = unit(0.05, "lines")
   )
-g2<-g1+geom_text(data=df2, aes(x=X1, y=X2, label=word, color=memb, size=marker), check_overlap = F)
+g2<-g1+geom_text(data=df2, aes(x=X1, y=X2, label=word, color=memb, size=2), check_overlap = T)
 g3<- g2 + labs(title="Vocabolary Map of Harvard Business Revew Corpus\nfrom 1922 to 2012",
                x="Component 1", y="Component 2") + theme_void() + 
   theme(legend.position="none") + scale_color_brewer(palette = "Set1")
