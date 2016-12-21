@@ -1,5 +1,5 @@
 
-# History of United States through the lens of Harvard Buisness Review Articles (1922 - 2012)the 
+# History of the United States through the lens of Harvard Buisness Review Articles (1922 - 2012) 
 
 [![HBR 90 years visualization](/term_map_clean2.png "HBR 90 years visualization")](/term_map_clean2.png)
 
