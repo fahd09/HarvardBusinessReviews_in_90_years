@@ -82,7 +82,7 @@ docs = tm_map(docs, content_transformer(removeWords), to_delete_words)          
 #docs = tm_map(docs, stemDocument)             # remove junk words
 docs = tm_map(docs, content_transformer(stripWhitespace))     # stripe white spaces
 
-stopwrds_hbr <- scan('./toDelete/stopwords_hbr.txt', what = "", sep = ',')
+stopwrds_hbr <- scan('./data/stopwords_hbr.txt', what = "", sep = ',')
 stopwrds_hbr <- unlist(lapply(stopwrds_hbr, strsplit, split=','))
 
 dtm.raw.2gram <- DocumentTermMatrix(docs, control = list(tokenize = BigramTokenizer,
