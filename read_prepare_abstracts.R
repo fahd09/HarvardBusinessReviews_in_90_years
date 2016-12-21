@@ -132,7 +132,7 @@ ggplot(data=term.freq.df, aes(log10(freq))) + geom_histogram(bins = 30) +
 years.list <- as.numeric(unique(format(hbr$date[hbr$DOCUMENT.TYPE=="Article"], '%Y')))
 years.grp <- 
   cut(as.numeric(format(hbr$date[hbr$DOCUMENT.TYPE=="Article"], '%Y')), 
-    breaks=31,#16,#31,#seq.int(1922, 2012, 3),
+    breaks=16,#31,#seq.int(1922, 2012, 3),
     include.lowest=T, ordered_result = F)
 levels(years.grp) <- gsub(',', '-', substr(levels(years.grp), 2,10)) # better names
 year_nominal <- makeNominalData(data.frame(years.grp))
@@ -154,7 +154,7 @@ pop_word_year <- cbind(long2, count=long1$count)
 #pop_word_year <- data.frame(year=as.numeric(colnames(word_year)), word=pop.wrd,count=pop.cnt)
 
 # examine pop_word_year
-word_year[grep('emotional', row.names(word_year)),]
+word_year[grep('robots', row.names(word_year)),]
 
 # using reshape2::melt() function to convert from matrix to long format
 # word_year.long <- melt(word_year, 
@@ -188,50 +188,46 @@ df2<-
          top = factor(ifelse(wt>quantile(wt,.5), 1, 0))) 
 # %>% filter(top ==1)
 
-# df2$marker <- ifelse(df2$word %in% c("newspapers", "amazon", "morgan", "war ii", 
-#                                      "depression era","facebook","innovation",
-#                                      "win win","venture capitalists",
-#                                      "trial error","texas instruments",
-#                                      "cold war","civil rights",
-#                                      "boston consulting","health insurance",
-#                                      "medical care","silicon valley",
-#                                      "start ups", "breakthroughs",
-#                                      "canada","marriage","propaganda","railroad",
-#                                      "railways","recessions","robots",
-#                                      "terrorist","semiconductor",
-#                                      "civilization", "workers union"), 5, 3)
-df2$marker <- factor(ifelse(df2$word %in% as.character( unique(pop_word_year$word) ), 5, 3))
+df2$marker <- ifelse(df2$word %in% c("newspapers", "amazon", "war ii", 
+                                     "depression era","facebook","innovation",
+                                     "venture capitalists",
+                                     "cold war","civil rights",
+                                     "health insurance",
+                                     "start ups",
+                                     "propaganda","railroad",
+                                     "railways","recessions","robots",
+                                     "wall street",
+                                     "civilization", "workers union"), 5, 3)
 
-#df2 <- subset(df2, top==1)
+#df2$marker <- factor(ifelse(df2$word %in% as.character( unique(pop_word_year$word) ), 5, 3))
 
-g1<-ggplot(data=df1, aes(x=X1, y=X2, label=year)) + geom_text(color="red") + geom_path()
-g2<-g1+geom_text(data=df2, aes(x=X1, y=X2, label=word, color=marker,size=marker), check_overlap = F)
-g3<- g2 + labs(title="Correspondence Analysis of HBR corpus over 90 years",
-               x="Component 1", y="Component 2") + theme_void() + 
-  theme(legend.position="none") + scale_color_brewer(palette = "Set1")
-g3
+# #df2 <- subset(df2, top==1)
+# g1 <- ggplot(data=df1, aes(x=X1, y=X2, label=year)) + geom_text(color="red") + geom_path()
+# g2 <- g1+geom_text(data=df2, aes(x=X1, y=X2, label=word, size=.5), check_overlap = T)
+# #g2 <- g2+geom_label(data=df2[df2$marker==5,], aes(x=X1, y=X2, label=word, color="black", size=5, fill="white"))
+# g3 <- g2 + labs(title="Vocabolary Map of Harvard Business Revew Corpus\nfrom 1922 to 2012",
+#                x="Component 1", y="Component 2") + theme_void() + 
+#   theme(legend.position="none") 
+# g3
 
 #clus<-hclust(dist(df2[,1:2]) )#, method = "ward.D2")
 
 clus<-hclust(dist(df2[,1:2]), method = "ward.D2")
-memb <- factor(cutree(clus, k = 5))
-
-
-library(ggrepel)
+df2$memb <- factor(cutree(clus, k = 5))
 
 g1<-ggplot(data=df1, aes(x=X1, y=X2, label=year)) + #geom_path() +
-  geom_label_repel(
-    aes(x=X1, y=X2, label = factor(year)),
-    fill = "white", fontface = 'bold', color = 'black',
-    box.padding = unit(0.05, "lines")
+  geom_label(
+    aes(x=X1, y=X2, label = factor(year))
+    ,fill = "white", fontface = 'bold', color = 'black'
   )
-g2<-g1+geom_text(data=df2, aes(x=X1, y=X2, label=word, color=memb, size=marker), check_overlap = T)
-g3<- g2 + labs(title="Vocabolary Map of Harvard Business Revew Corpus\nfrom 1922 to 2012",
+g2<-g1+geom_text(data=df2, aes(x=X1, y=X2, label=word, color=memb), size=3, check_overlap = T)
+g3<-g2+geom_text(data=df2[df2$marker==5,], aes(x=X1, y=X2, label=word, color=memb), size=5, check_overlap = F)
+g4<- g3 + labs(title="Vocabolary Map of Harvard Business Revew Corpus\nfrom 1922 to 2012",
                x="Component 1", y="Component 2") + theme_void() + 
   theme(legend.position="none") + scale_color_brewer(palette = "Set1")
-g3 
+g4 
 
-ggsave('./term_map_clean2.png', g3)
+ggsave('./term_map_clean2.png', g4)
 #ggsave('./term_map_full.png', g3)
 
 
