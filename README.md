@@ -1,9 +1,13 @@
 
-# HBR_in90yrs
+# History of America through Harvard Buisness Review Articles (1922 - 2012)
 
-A text mining project for HBR articles in 90 years (see https://www.kaggle.com/c/harvard-business-review-vision-statement-prospect/).
+A text mining project for HBR art[icles in 90 years [https://www.kaggle.com/c/harvard-business-review-vision-statement-prospect/].
+ dgh
+[![HBR 90 years visualization](/term_map_clean2.png "HBR 90 years visualization")](/term_map_clean2.png)
 
-In this project, I use a multivariate technique called Correspondence Analysis (CA). Given a term-year matrix that describe how many times a term j have been mentioned in year (or group of years) j, CA produces a set of orthognal components (just like Principal Component Analysis PCA) that capture the "driving forces" of variance in a dataset.
+-> [Open the the high def picture](/term_map_clean2.png)  
+
+In this project, I use a multivariate technique called [Correspondence Analysis (CA)](https://en.wikipedia.org/wiki/Correspondence_analysis). Given a term-year matrix that describe how many times a term j have been mentioned in year (or group of years) j, CA produces a set of orthognal components (just like Principal Component Analysis PCA) that capture the "driving forces" of variance in a dataset.
 
 How to read the plot ?
 
