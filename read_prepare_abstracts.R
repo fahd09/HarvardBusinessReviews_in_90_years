@@ -123,6 +123,8 @@ ggplot(data=term.freq.df, aes(log10(freq))) + geom_histogram(bins = 30) +
 # year_nominal <- makeNominalData(temp_df)
 # colnames(year_nominal) <- substr(colnames(year_nominal), 6,10)
 # word_year <- t(dtm.mat) %*% year_nominal 
+# yrs.sorted <- order(as.numeric(colnames(word_year)))
+# word_year <- word_year[,yrs.sorted]
 
 ################## Option 2
 # we will use 4-year running interval
@@ -130,7 +132,7 @@ ggplot(data=term.freq.df, aes(log10(freq))) + geom_histogram(bins = 30) +
 years.list <- as.numeric(unique(format(hbr$date[hbr$DOCUMENT.TYPE=="Article"], '%Y')))
 years.grp <- 
   cut(as.numeric(format(hbr$date[hbr$DOCUMENT.TYPE=="Article"], '%Y')), 
-    breaks=16,#31,#seq.int(1922, 2012, 3),
+    breaks=31,#16,#31,#seq.int(1922, 2012, 3),
     include.lowest=T, ordered_result = F)
 levels(years.grp) <- gsub(',', '-', substr(levels(years.grp), 2,10)) # better names
 year_nominal <- makeNominalData(data.frame(years.grp))
@@ -138,25 +140,8 @@ word_year <- t(dtm.mat) %*% year_nominal
 colnames(word_year) <- substr(colnames(word_year), 16,20)
 word_year<-word_year[,order(as.numeric(colnames(word_year)))]
 
-# Now we have:
-# dtm           ==> 12697 (articles)  x 18376  (words)
-# year_nominal  ==> 12697 (articles)  x 89    (years)
-
-# we want: 
-# word_year     ==> 4673  (words) x 89 (years) # gives counts of each word per year!
-
-
-# head(word_year)
-
-# No need for this when using the 4-year window
-# yrs.sorted <- order(as.numeric(colnames(word_year)))
-# word_year <- word_year[,yrs.sorted]
-#word_year[word_year==0] <- NA       # we convert all zeros to NAs 
-# so that we get rid of multiple 
-# "zero" records in next step
-
 # popular word per year
-num<-4
+num<-10
 pop.cnt <- apply(word_year, 2, function(x) {return( sort(x, decreasing = T)[1:num] )})                                   # return maximum "count"
 pop.wrd <- apply(word_year, 2, function(x) {return( names(x[order(x, decreasing = T)[1:num]]) )})                                   # return maximum "count"
 #pop.wrd <- apply(word_year, 2, function(x) {return( list(x[order(x, decreasing = T)[1:5]]) )})                                   # return maximum "count"
@@ -200,8 +185,8 @@ df2<-
   select(num_range("X", 1:4)) %>%
   mutate(word= row.names(res.ca$ExPosition.Data$fj)) %>%
   mutate(wt  = as.vector(res.ca$ExPosition.Data$dj),
-         top = factor(ifelse(wt>quantile(wt,.95), 1, 0))) %>%
-  filter(top ==1)
+         top = factor(ifelse(wt>quantile(wt,.5), 1, 0))) 
+# %>% filter(top ==1)
 
 # df2$marker <- ifelse(df2$word %in% c("newspapers", "amazon", "morgan", "war ii", 
 #                                      "depression era","facebook","innovation",
@@ -215,17 +200,19 @@ df2<-
 #                                      "railways","recessions","robots",
 #                                      "terrorist","semiconductor",
 #                                      "civilization", "workers union"), 5, 3)
-df2$marker <- ifelse(df2$word %in% as.character( unique(pop_word_year$word) ), 5, 3)
+df2$marker <- factor(ifelse(df2$word %in% as.character( unique(pop_word_year$word) ), 5, 3))
 
 #df2 <- subset(df2, top==1)
 
 g1<-ggplot(data=df1, aes(x=X1, y=X2, label=year)) + geom_text(color="red") + geom_path()
-g2<-g1+geom_text(data=df2, aes(x=X1, y=X2, label=word, size=marker), check_overlap = F)
+g2<-g1+geom_text(data=df2, aes(x=X1, y=X2, label=word, color=marker,size=marker), check_overlap = F)
 g3<- g2 + labs(title="Correspondence Analysis of HBR corpus over 90 years",
-               x="Component 1", y="Component 2") + theme_void() + theme(legend.position="none")
+               x="Component 1", y="Component 2") + theme_void() + 
+  theme(legend.position="none") + scale_color_brewer(palette = "Set1")
 g3
 
 #clus<-hclust(dist(df2[,1:2]) )#, method = "ward.D2")
+
 clus<-hclust(dist(df2[,1:2]), method = "ward.D2")
 memb <- factor(cutree(clus, k = 5))
 
@@ -238,7 +225,7 @@ g1<-ggplot(data=df1, aes(x=X1, y=X2, label=year)) + #geom_path() +
     fill = "white", fontface = 'bold', color = 'black',
     box.padding = unit(0.05, "lines")
   )
-g2<-g1+geom_text(data=df2, aes(x=X1, y=X2, label=word, color=memb, size=2), check_overlap = F)
+g2<-g1+geom_text(data=df2, aes(x=X1, y=X2, label=word, color=memb, size=marker), check_overlap = T)
 g3<- g2 + labs(title="Vocabolary Map of Harvard Business Revew Corpus\nfrom 1922 to 2012",
                x="Component 1", y="Component 2") + theme_void() + 
   theme(legend.position="none") + scale_color_brewer(palette = "Set1")
